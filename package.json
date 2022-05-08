@@ -9,7 +9,9 @@
     "knex": "babel-node node_modules/.bin/knex",
     "start:dev": "nodemon --exec babel-node src --source-maps",
     "migrate": "yarn knex migrate:latest --knexfile src/knex.js",
+    "seed": "yarn knex seed:run --knexfile src/knex.js",
     "make:migration": "yarn knex migrate:make --knexfile src/knex.js",
+    "make:seed": "yarn knex seed:make --knexfile src/knex.js",
     "rollback": "yarn knex migrate:rollback --knexfile src/knex.js"
   },
   "dependencies": {
