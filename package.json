@@ -15,10 +15,12 @@
     "rollback": "yarn knex migrate:rollback --knexfile src/knex.js"
   },
   "dependencies": {
+    "camelcase-keys": "^7.0.2",
     "dotenv": "^16.0.0",
     "express": "^4.18.1",
     "knex": "^2.0.0",
-    "pg": "^8.7.3"
+    "pg": "^8.7.3",
+    "to-snake-case": "^1.0.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.17.10",

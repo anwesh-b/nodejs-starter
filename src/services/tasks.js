@@ -1,10 +1,15 @@
+import TasksModel from "../models/tasks";
+import TaskStatusModel from "../models/tasksStatus";
+
+import { BACKLOG } from "../constants/tasks";
+
 /**
  * Get all tasks.
  *
  * @param {Object} filter
  */
 export async function getAll(filter) {
-  return `Get all with filter ${JSON.stringify(filter)}`;
+  return await TasksModel.fetch(filter);
 }
 
 /**
@@ -24,7 +29,20 @@ export async function getById(id) {
  * @returns
  */
 export async function create(task) {
-  return `Create task with data: ${JSON.stringify(task)}`;
+  try {
+    return await TasksModel.transaction(async (trx) => {
+      const [newTask] = await TasksModel.insert(task, trx);
+
+      await TaskStatusModel.insert(
+        { taskId: newTask.id, status: BACKLOG },
+        trx
+      );
+
+      return TasksModel.findById(newTask.id, trx);
+    });
+  } catch (e) {
+    throw e;
+  }
 }
 
 /**
