@@ -19,7 +19,9 @@ export async function getAll(filter) {
  * @returns
  */
 export async function getById(id) {
-  return `Get task with id: ${id}`;
+  const [data] = await TasksModel.fetch({ id });
+
+  return data;
 }
 
 /**
@@ -29,20 +31,13 @@ export async function getById(id) {
  * @returns
  */
 export async function create(task) {
-  try {
-    return await TasksModel.transaction(async (trx) => {
-      const [newTask] = await TasksModel.insert(task, trx);
+  return await TasksModel.transaction(async (trx) => {
+    const [newTask] = await TasksModel.insert(task, trx);
 
-      await TaskStatusModel.insert(
-        { taskId: newTask.id, status: BACKLOG },
-        trx
-      );
+    await TaskStatusModel.insert({ taskId: newTask.id, status: BACKLOG }, trx);
 
-      return TasksModel.findById(newTask.id, trx);
-    });
-  } catch (e) {
-    throw e;
-  }
+    return TasksModel.findById(newTask.id, trx);
+  });
 }
 
 /**
@@ -52,8 +47,21 @@ export async function create(task) {
  * @param {Object} task
  * @returns
  */
-export async function updateById(id, task) {
-  return `Update task with id: ${id} to ${JSON.stringify(task)}`;
+export async function updateById(id, data, status, task) {
+  return await TasksModel.transaction(async (trx) => {
+    const [newTask] = await TasksModel.update(data, trx);
+
+    const currentStatus = await TasksModel.getCurrentStatus(id, trx);
+
+    if (currentStatus !== status) {
+      await TaskStatusModel.insert(
+        { taskId: newTask.id, status: BACKLOG },
+        trx
+      );
+    }
+
+    return TasksModel.findById(newTask.id, trx);
+  });
 }
 
 /**
@@ -63,5 +71,30 @@ export async function updateById(id, task) {
  * @returns
  */
 export async function deleteById(id) {
-  return `Delete task with id: ${id}`;
+  await TasksModel.delete(id);
+
+  return { data: `Deleted task with id: ${id}` };
+}
+
+/**
+ * Update task status.
+ *
+ * @param {number} id
+ * @param {string} status
+ * @returns
+ */
+export async function updateStatus(id, status) {
+  return await TasksModel.transaction(async (trx) => {
+    const [newTask] = await TasksModel.update(data, trx);
+
+    const currentStatus = await TasksModel.getCurrentStatus(id, trx);
+
+    if (currentStatus === status) {
+      throw new Error(`Task is already in ${status} status`);
+    }
+
+    await TaskStatusModel.insert({ taskId: newTask.id, status: BACKLOG }, trx);
+
+    return TasksModel.findById(newTask.id, trx);
+  });
 }

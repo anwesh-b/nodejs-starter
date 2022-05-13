@@ -31,6 +31,16 @@ class TasksModel extends GenericModel {
 
     return query;
   }
+
+  static getCurrentStatus(id, trx) {
+    return super
+      .queryBuilder(trx)
+      .select("status")
+      .from(TASK_STATUS)
+      .where("task_id", id)
+      .orderBy("id", "desc")
+      .limit(1);
+  }
 }
 
 export default TasksModel;

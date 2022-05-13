@@ -19,14 +19,21 @@ export async function create(req, res) {
 }
 
 export async function updateById(req, res) {
-  console.log(req.body)
-  const data = await taskService.updateById(req.params.id, req.body);
+  const { status, ...rest } = req.body;
+
+  const data = await taskService.updateById(req.params.id, rest, status);
 
   res.send(data);
 }
 
 export async function deleteById(req, res) {
   const data = await taskService.deleteById(req.params.id);
+
+  res.send(data);
+}
+
+export async function updateStatus(req, res) {
+  const data = await taskService.updateStatus(req.params.id, req.body.status);
 
   res.send(data);
 }

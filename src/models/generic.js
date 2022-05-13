@@ -29,8 +29,8 @@ class BaseModel {
     return this.queryBuilder(trx).insert(data).into(this.table).returning("*");
   }
 
-  static update(data, trx) {
-    return this.queryBuilder(trx).update(data).into(this.table);
+  static update(id, data, trx) {
+    return this.queryBuilder(trx).update(data).from(this.table).where("id", id);
   }
 
   static delete(id, trx) {
