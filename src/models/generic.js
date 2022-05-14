@@ -33,7 +33,7 @@ class BaseModel {
     return this.queryBuilder(trx).update(data).from(this.table).where("id", id);
   }
 
-  static delete(id, trx) {
+  static deleteById(id, trx) {
     return this.queryBuilder(trx).delete().from(this.table).where("id", id);
   }
 

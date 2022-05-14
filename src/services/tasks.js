@@ -3,6 +3,9 @@ import TaskStatusModel from "../models/tasksStatus";
 
 import { BACKLOG } from "../constants/tasks";
 
+import ValidationError from "../errors/validation";
+import RowNotFoundError from "../errors/rowNotFound";
+
 /**
  * Get all tasks.
  *
@@ -20,6 +23,10 @@ export async function getAll(filter) {
  */
 export async function getById(id) {
   const [data] = await TasksModel.fetch({ id });
+
+  if (!data) {
+    throw new RowNotFoundError(`Task with id ${id} not found`);
+  }
 
   return data;
 }
@@ -47,7 +54,13 @@ export async function create(task) {
  * @param {Object} task
  * @returns
  */
-export async function updateById(id, data, status, task) {
+export async function updateById(id, data, status) {
+  const [prevData] = await TasksModel.fetch({ id });
+
+  if (!prevData) {
+    throw new RowNotFoundError(`Task with id ${id} not found`);
+  }
+
   return await TasksModel.transaction(async (trx) => {
     const [newTask] = await TasksModel.update(data, trx);
 
@@ -71,7 +84,11 @@ export async function updateById(id, data, status, task) {
  * @returns
  */
 export async function deleteById(id) {
-  await TasksModel.delete(id);
+  await TaskStatusModel.transaction(async (trx) => {
+    await TaskStatusModel.deleteByTaskId(id, trx);
+
+    await TasksModel.deleteById(id, trx);
+  });
 
   return { data: `Deleted task with id: ${id}` };
 }
@@ -85,15 +102,17 @@ export async function deleteById(id) {
  */
 export async function updateStatus(id, status) {
   return await TasksModel.transaction(async (trx) => {
-    const [newTask] = await TasksModel.update(data, trx);
+    const [prevData] = await TasksModel.fetch({ id }, trx);
 
-    const currentStatus = await TasksModel.getCurrentStatus(id, trx);
-
-    if (currentStatus === status) {
-      throw new Error(`Task is already in ${status} status`);
+    if (!prevData) {
+      throw new RowNotFoundError(`Task with id ${id} not found`);
     }
 
-    await TaskStatusModel.insert({ taskId: newTask.id, status: BACKLOG }, trx);
+    if (prevData.status === status) {
+      throw new ValidationError(`Task is already in ${status} status`);
+    }
+
+    await TaskStatusModel.insert({ taskId: id, status: status }, trx);
 
     return TasksModel.findById(newTask.id, trx);
   });

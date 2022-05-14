@@ -12,11 +12,11 @@ You can refer to [Knex Documentation](http://knexjs.org/#Installation-node)
 ## Checklist
 - [x] Babel
 - [x] env config
-- [ ] DB setup
+- [x] DB setup
 - [ ] Docs
 - [ ] Formatter Setup
 - [ ] Validation
 - [ ] Logging
-- [ ] Error Handling
+- [x] Error Handling
 - [ ] Testing
 - [ ] Authentication
