@@ -15,7 +15,7 @@ You can refer to [Knex Documentation](http://knexjs.org/#Installation-node)
 - [x] DB setup
 - [ ] Docs
 - [ ] Formatter Setup
-- [ ] Validation
+- [x] Validation
 - [ ] Logging
 - [x] Error Handling
 - [ ] Testing

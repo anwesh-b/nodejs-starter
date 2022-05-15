@@ -6,6 +6,9 @@ import { BACKLOG } from "../constants/tasks";
 import ValidationError from "../errors/validation";
 import RowNotFoundError from "../errors/rowNotFound";
 
+import { formatDate } from "../utils/date";
+import { onlyWithAttrs } from "../utils/object";
+
 /**
  * Get all tasks.
  *
@@ -39,9 +42,14 @@ export async function getById(id) {
  */
 export async function create(task) {
   return await TasksModel.transaction(async (trx) => {
-    const [newTask] = await TasksModel.insert(task, trx);
+    const fomattedTask = onlyWithAttrs(task, ["title", "description"]);
 
-    await TaskStatusModel.insert({ taskId: newTask.id, status: BACKLOG }, trx);
+    const [newTask] = await TasksModel.insert(fomattedTask, trx);
+
+    await TaskStatusModel.insert(
+      { taskId: newTask.id, status: task.status },
+      trx
+    );
 
     return TasksModel.findById(newTask.id, trx);
   });
@@ -62,7 +70,10 @@ export async function updateById(id, data, status) {
   }
 
   return await TasksModel.transaction(async (trx) => {
-    const [newTask] = await TasksModel.update(data, trx);
+    const fomattedTask = onlyWithAttrs(data, ["title", "description"]);
+    fomattedTask.updatedAt = formatDate();
+
+    const [newTask] = await TasksModel.update(fomattedTask, trx);
 
     const currentStatus = await TasksModel.getCurrentStatus(id, trx);
 
